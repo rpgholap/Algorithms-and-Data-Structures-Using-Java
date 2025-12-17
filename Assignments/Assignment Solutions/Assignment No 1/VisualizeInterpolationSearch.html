@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interpolation Search Visualization</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .array-container {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .array-element {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .array-element.low {
+            background: rgba(255, 107, 107, 0.8);
+            border-color: #ff6b6b;
+            box-shadow: 0 0 15px rgba(255, 107, 107, 0.5);
+        }
+        
+        .array-element.high {
+            background: rgba(74, 144, 226, 0.8);
+            border-color: #4a90e2;
+            box-shadow: 0 0 15px rgba(74, 144, 226, 0.5);
+        }
+        
+        .array-element.pos {
+            background: rgba(46, 213, 115, 0.8);
+            border-color: #2ed573;
+            box-shadow: 0 0 15px rgba(46, 213, 115, 0.5);
+            animation: pulse 1s infinite;
+        }
+        
+        .array-element.found {
+            background: rgba(255, 165, 0, 0.9);
+            border-color: #ffa500;
+            box-shadow: 0 0 20px rgba(255, 165, 0, 0.7);
+            animation: celebration 0.8s ease-in-out;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        @keyframes celebration {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.2) rotate(-5deg); }
+            75% { transform: scale(1.2) rotate(5deg); }
+        }
+        
+        .index-label {
+            position: absolute;
+            bottom: -25px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .step-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 15px;
+            border-left: 5px solid #2ed573;
+        }
+        
+        .formula {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            font-size: 16px;
+            overflow-x: auto;
+        }
+        
+        .controls {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #2ed573, #17a2b8);
+            border: none;
+            padding: 12px 25px;
+            margin: 0 10px;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:disabled {
+            background: rgba(255, 255, 255, 0.3);
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .legend-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 5px;
+        }
+        
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .comparison-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            .array-element {
+                width: 45px;
+                height: 45px;
+                font-size: 14px;
+            }
+            
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+            
+            .legend {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Interpolation Search Visualization</h1>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-box" style="background: rgba(255, 107, 107, 0.8);"></div>
+                <span>Low Pointer</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: rgba(74, 144, 226, 0.8);"></div>
+                <span>High Pointer</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: rgba(46, 213, 115, 0.8);"></div>
+                <span>Estimated Position</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: rgba(255, 165, 0, 0.9);"></div>
+                <span>Target Found</span>
+            </div>
+        </div>
+        
+        <div class="array-container" id="arrayContainer"></div>
+        
+        <div class="controls">
+            <button id="startBtn" onclick="startSearch()">Start Search</button>
+            <button id="stepBtn" onclick="nextStep()" disabled>Next Step</button>
+            <button id="resetBtn" onclick="resetSearch()">Reset</button>
+        </div>
+        
+        <div class="step-info" id="stepInfo">
+            <h3>🎯 Searching for: <span style="color: #ffa500;">50</span></h3>
+            <p>Array: [1, 3, 7, 15, 20, 21, 50, 55, 75, 80]</p>
+            <p>Click "Start Search" to begin the interpolation search algorithm!</p>
+        </div>
+        
+        <div class="comparison">
+            <div class="comparison-box">
+                <h3>📊 Binary Search</h3>
+                <p>Always checks the <strong>middle</strong> element</p>
+                <p>Position = (low + high) / 2</p>
+                <p>Time: O(log n)</p>
+            </div>
+            <div class="comparison-box">
+                <h3>🎯 Interpolation Search</h3>
+                <p><strong>Estimates</strong> the position based on value</p>
+                <p>Position = low + (key - arr[low]) × (high - low) / (arr[high] - arr[low])</p>
+                <p>Time: O(log log n) for uniform data</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const arr = [1, 3, 7, 15, 20, 21, 50, 55, 75, 80];
+        const target = 50;
+        let currentStep = 0;
+        let searchSteps = [];
+        
+        function initializeArray() {
+            const container = document.getElementById('arrayContainer');
+            container.innerHTML = '';
+            
+            arr.forEach((value, index) => {
+                const element = document.createElement('div');
+                element.className = 'array-element';
+                element.id = `element-${index}`;
+                element.innerHTML = `
+                    ${value}
+                    <div class="index-label">${index}</div>
+                `;
+                container.appendChild(element);
+            });
+        }
+        
+        function calculateSearchSteps() {
+            searchSteps = [];
+            let low = 0, high = arr.length - 1;
+            let stepCount = 1;
+            
+            while (low <= high && target >= arr[low] && target <= arr[high]) {
+                if (low === high) {
+                    if (arr[low] === target) {
+                        searchSteps.push({
+                            step: stepCount,
+                            low, high,
+                            pos: low,
+                            found: true,
+                            formula: `Element found at index ${low}!`,
+                            explanation: `🎉 Target ${target} found at index ${low}!`
+                        });
+                    }
+                    break;
+                }
+                
+                // Calculate interpolated position
+                const pos = low + Math.floor(((target - arr[low]) * (high - low)) / (arr[high] - arr[low]));
+                
+                const formula = `pos = ${low} + ((${target} - ${arr[low]}) × (${high} - ${low})) / (${arr[high]} - ${arr[low]})
+= ${low} + (${target - arr[low]} × ${high - low}) / ${arr[high] - arr[low]}
+= ${low} + ${(target - arr[low]) * (high - low)} / ${arr[high] - arr[low]}
+= ${low} + ${Math.floor(((target - arr[low]) * (high - low)) / (arr[high] - arr[low]))}
+= ${pos}`;
+                
+                let explanation = `Step ${stepCount}: Checking position ${pos} (value: ${arr[pos]})`;
+                
+                searchSteps.push({
+                    step: stepCount,
+                    low, high, pos,
+                    found: false,
+                    formula,
+                    explanation
+                });
+                
+                if (arr[pos] === target) {
+                    searchSteps.push({
+                        step: stepCount + 1,
+                        low, high, pos,
+                        found: true,
+                        formula: `🎯 Target ${target} found at index ${pos}!`,
+                        explanation: `🎉 Success! Element ${target} found at index ${pos}`
+                    });
+                    break;
+                } else if (arr[pos] < target) {
+                    low = pos + 1;
+                    explanation += ` → ${arr[pos]} < ${target}, search right half`;
+                } else {
+                    high = pos - 1;
+                    explanation += ` → ${arr[pos]} > ${target}, search left half`;
+                }
+                
+                searchSteps[searchSteps.length - 1].explanation = explanation;
+                stepCount++;
+            }
+        }
+        
+        function startSearch() {
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stepBtn').disabled = false;
+            currentStep = 0;
+            calculateSearchSteps();
+            updateDisplay();
+        }
+        
+        function nextStep() {
+            if (currentStep < searchSteps.length - 1) {
+                currentStep++;
+                updateDisplay();
+            }
+            
+            if (currentStep >= searchSteps.length - 1) {
+                document.getElementById('stepBtn').disabled = true;
+            }
+        }
+        
+        function resetSearch() {
+            currentStep = 0;
+            searchSteps = [];
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stepBtn').disabled = true;
+            
+            // Reset all elements
+            arr.forEach((_, index) => {
+                const element = document.getElementById(`element-${index}`);
+                element.className = 'array-element';
+            });
+            
+            document.getElementById('stepInfo').innerHTML = `
+                <h3>🎯 Searching for: <span style="color: #ffa500;">50</span></h3>
+                <p>Array: [1, 3, 7, 15, 20, 21, 50, 55, 75, 80]</p>
+                <p>Click "Start Search" to begin the interpolation search algorithm!</p>
+            `;
+        }
+        
+        function updateDisplay() {
+            if (searchSteps.length === 0) return;
+            
+            const step = searchSteps[currentStep];
+            
+            // Reset all elements
+            arr.forEach((_, index) => {
+                const element = document.getElementById(`element-${index}`);
+                element.className = 'array-element';
+            });
+            
+            // Highlight current pointers
+            if (!step.found || currentStep < searchSteps.length - 1) {
+                document.getElementById(`element-${step.low}`).classList.add('low');
+                document.getElementById(`element-${step.high}`).classList.add('high');
+                document.getElementById(`element-${step.pos}`).classList.add('pos');
+            }
+            
+            if (step.found) {
+                document.getElementById(`element-${step.pos}`).classList.remove('pos');
+                document.getElementById(`element-${step.pos}`).classList.add('found');
+            }
+            
+            // Update step info
+            document.getElementById('stepInfo').innerHTML = `
+                <h3>${step.explanation}</h3>
+                <div class="formula">${step.formula}</div>
+                <p><strong>Current range:</strong> Index ${step.low} to ${step.high} (values: ${arr[step.low]} to ${arr[step.high]})</p>
+                <p><strong>Progress:</strong> Step ${currentStep + 1} of ${searchSteps.length}</p>
+            `;
+        }
+        
+        // Initialize the array display
+        initializeArray();
+    </script>
+</body>
+</html>
