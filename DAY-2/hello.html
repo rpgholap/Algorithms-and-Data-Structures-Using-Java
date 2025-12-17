@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tower of Hanoi - Interactive Visual Simulation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            overflow-x: auto;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #ffd700;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 30px;
+        }
+        
+        .controls {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 0 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .game-area {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            height: 300px;
+            margin: 40px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+        }
+        
+        .rod {
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            margin: 0 50px;
+            position: relative;
+        }
+        
+        .rod-label {
+            position: absolute;
+            bottom: -40px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        
+        .rod-pole {
+            width: 8px;
+            height: 200px;
+            background: linear-gradient(to top, #8b7355, #a0937d);
+            border-radius: 4px;
+            position: absolute;
+            bottom: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .rod-base {
+            width: 120px;
+            height: 20px;
+            background: linear-gradient(45deg, #654321, #8b7355);
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .disk {
+            height: 20px;
+            border-radius: 10px;
+            margin: 2px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            z-index: 10;
+        }
+        
+        .disk.moving {
+            z-index: 100;
+            transform: translateY(-100px);
+        }
+        
+        .disk-1 {
+            width: 60px;
+            background: linear-gradient(45deg, #ff6b6b, #ff5252);
+        }
+        
+        .disk-2 {
+            width: 80px;
+            background: linear-gradient(45deg, #4ecdc4, #26a69a);
+        }
+        
+        .disk-3 {
+            width: 100px;
+            background: linear-gradient(45deg, #45b7d1, #2196f3);
+        }
+        
+        .info-panel {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .info-box {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 10px;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .info-title {
+            color: #ffd700;
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        
+        .move-counter {
+            font-size: 24px;
+            color: #4ecdc4;
+            font-weight: bold;
+        }
+        
+        .current-move {
+            background: rgba(255, 215, 0, 0.2);
+            border: 2px solid #ffd700;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .move-history {
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+        }
+        
+        .move-item {
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .move-item:last-child {
+            border-bottom: none;
+        }
+        
+        .explanation {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .rules {
+            background: rgba(255, 107, 107, 0.1);
+            border: 2px solid #ff6b6b;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .speed-control {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .speed-slider {
+            width: 200px;
+            margin: 0 10px;
+        }
+        
+        @keyframes diskMove {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-120px); }
+            100% { transform: translateY(0); }
+        }
+        
+        .pulse {
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗼 Tower of Hanoi - Interactive Visual Simulation</h1>
+        
+        <div class="rules">
+            <h3>📜 The Three Sacred Rules:</h3>
+            <ul>
+                <li><strong>Rule 1:</strong> Move only ONE disk at a time</li>
+                <li><strong>Rule 2:</strong> Only take the TOP disk from any rod</li>
+                <li><strong>Rule 3:</strong> NEVER put a larger disk on top of a smaller disk</li>
+            </ul>
+        </div>
+        
+        <div class="controls">
+            <button class="btn" onclick="startSolution()">▶️ Start Solution</button>
+            <button class="btn" onclick="nextMove()" id="nextBtn" disabled>⏭️ Next Move</button>
+            <button class="btn" onclick="autoPlay()" id="autoBtn" disabled>🔄 Auto Play</button>
+            <button class="btn" onclick="resetGame()">🔄 Reset</button>
+        </div>
+        
+        <div class="speed-control">
+            <label>Animation Speed: </label>
+            <input type="range" class="speed-slider" min="500" max="3000" value="1500" id="speedSlider">
+            <span id="speedLabel">Normal</span>
+        </div>
+        
+        <div class="current-move" id="currentMove">
+            🎯 Goal: Move all 3 disks from Rod A to Rod C
+        </div>
+        
+        <div class="game-area">
+            <div class="rod" id="rodA">
+                <div class="rod-label">A (Source)</div>
+                <div class="rod-pole"></div>
+                <div class="rod-base"></div>
+                <div class="disk disk-1" id="disk1">1</div>
+                <div class="disk disk-2" id="disk2">2</div>
+                <div class="disk disk-3" id="disk3">3</div>
+            </div>
+            
+            <div class="rod" id="rodB">
+                <div class="rod-label">B (Helper)</div>
+                <div class="rod-pole"></div>
+                <div class="rod-base"></div>
+            </div>
+            
+            <div class="rod" id="rodC">
+                <div class="rod-label">C (Destination)</div>
+                <div class="rod-pole"></div>
+                <div class="rod-base"></div>
+            </div>
+        </div>
+        
+        <div class="info-panel">
+            <div class="info-box">
+                <div class="info-title">📊 Statistics</div>
+                <div>Moves Completed: <span class="move-counter" id="moveCount">0</span> / 7</div>
+                <div>Time Complexity: O(2ⁿ)</div>
+                <div>For 3 disks: 2³ - 1 = 7 moves</div>
+            </div>
+            
+            <div class="info-box">
+                <div class="info-title">🔄 Current Strategy</div>
+                <div id="strategyText">
+                    To move 3 disks from A to C:<br>
+                    1. Move 2 disks from A to B<br>
+                    2. Move big disk from A to C<br>
+                    3. Move 2 disks from B to C
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <div class="info-title">📝 Move History</div>
+                <div class="move-history" id="moveHistory">
+                    No moves yet. Click "Start Solution" to begin!
+                </div>
+            </div>
+        </div>
+        
+        <div class="explanation" id="explanation">
+            <h3>💡 How It Works:</h3>
+            <p>The Tower of Hanoi uses <strong>recursion</strong> - solving a big problem by breaking it into smaller problems of the same type. To move n disks, we:</p>
+            <ol>
+                <li>Move n-1 disks to the helper rod</li>
+                <li>Move the largest disk to the destination</li>
+                <li>Move n-1 disks from helper to destination</li>
+            </ol>
+            <p>Watch how this pattern repeats as we solve the puzzle!</p>
+        </div>
+    </div>
+    
+    <script>
+        let moves = [];
+        let currentMoveIndex = 0;
+        let isPlaying = false;
+        let gameSpeed = 1500;
+        
+        // Define all 7 moves for 3-disk Tower of Hanoi
+        const solution = [
+            { from: 'A', to: 'C', disk: 1, explanation: "Move smallest disk from A to C (start of moving 2 disks from A to B)" },
+            { from: 'A', to: 'B', disk: 2, explanation: "Move disk 2 from A to B (middle step of moving 2 disks from A to B)" },
+            { from: 'C', to: 'B', disk: 1, explanation: "Move disk 1 from C to B (complete moving 2 disks from A to B)" },
+            { from: 'A', to: 'C', disk: 3, explanation: "Move largest disk from A to C (this was our main goal!)" },
+            { from: 'B', to: 'A', disk: 1, explanation: "Move disk 1 from B to A (start of moving 2 disks from B to C)" },
+            { from: 'B', to: 'C', disk: 2, explanation: "Move disk 2 from B to C (middle step of moving 2 disks from B to C)" },
+            { from: 'A', to: 'C', disk: 1, explanation: "Move disk 1 from A to C (complete! All disks on C)" }
+        ];
+        
+        // Initialize game state
+        let gameState = {
+            A: [3, 2, 1],
+            B: [],
+            C: []
+        };
+        
+        function startSolution() {
+            document.getElementById('nextBtn').disabled = false;
+            document.getElementById('autoBtn').disabled = false;
+            updateCurrentMove("Ready to start! Click 'Next Move' or 'Auto Play'");
+            updateStrategy("Step 1: We need to move 2 disks from A to B first");
+        }
+        
+        function nextMove() {
+            if (currentMoveIndex >= solution.length) {
+                updateCurrentMove("🎉 Puzzle Completed! All disks successfully moved to Rod C!");
+                updateStrategy("Congratulations! You've seen how recursion solves complex problems!");
+                return;
+            }
+            
+            const move = solution[currentMoveIndex];
+            performMove(move);
+            currentMoveIndex++;
+            
+            // Update UI
+            document.getElementById('moveCount').textContent = currentMoveIndex;
+            updateCurrentMove(move.explanation);
+            addToHistory(move);
+            updateStrategy(getStrategyForMove(currentMoveIndex));
+            
+            if (currentMoveIndex >= solution.length) {
+                document.getElementById('nextBtn').disabled = true;
+                document.getElementById('autoBtn').disabled = true;
+            }
+        }
+        
+        function performMove(move) {
+            const disk = document.getElementById(`disk${move.disk}`);
+            const fromRod = document.getElementById(`rod${move.from}`);
+            const toRod = document.getElementById(`rod${move.to}`);
+            
+            // Update game state
+            const diskValue = gameState[move.from].pop();
+            gameState[move.to].push(diskValue);
+            
+            // Animate the move
+            disk.classList.add('moving');
+            disk.classList.add('pulse');
+            
+            setTimeout(() => {
+                // Move the disk element to the new rod
+                toRod.appendChild(disk);
+                disk.classList.remove('moving');
+                disk.classList.remove('pulse');
+                
+                // Add visual feedback
+                disk.style.animation = 'diskMove 0.8s ease-in-out';
+                setTimeout(() => {
+                    disk.style.animation = '';
+                }, 800);
+                
+            }, gameSpeed / 3);
+        }
+        
+        function autoPlay() {
+            if (isPlaying) return;
+            isPlaying = true;
+            document.getElementById('autoBtn').textContent = '⏸️ Playing...';
+            document.getElementById('autoBtn').disabled = true;
+            
+            const playInterval = setInterval(() => {
+                nextMove();
+                if (currentMoveIndex >= solution.length) {
+                    clearInterval(playInterval);
+                    isPlaying = false;
+                    document.getElementById('autoBtn').textContent = '🔄 Auto Play';
+                }
+            }, gameSpeed);
+        }
+        
+        function resetGame() {
+            currentMoveIndex = 0;
+            isPlaying = false;
+            
+            // Reset game state
+            gameState = { A: [3, 2, 1], B: [], C: [] };
+            
+            // Reset visual elements
+            const rodA = document.getElementById('rodA');
+            const rodB = document.getElementById('rodB');
+            const rodC = document.getElementById('rodC');
+            
+            // Move all disks back to rod A
+            const disk1 = document.getElementById('disk1');
+            const disk2 = document.getElementById('disk2');
+            const disk3 = document.getElementById('disk3');
+            
+            rodA.appendChild(disk1);
+            rodA.appendChild(disk2);
+            rodA.appendChild(disk3);
+            
+            // Reset UI
+            document.getElementById('moveCount').textContent = '0';
+            document.getElementById('nextBtn').disabled = true;
+            document.getElementById('autoBtn').disabled = true;
+            document.getElementById('autoBtn').textContent = '🔄 Auto Play';
+            document.getElementById('moveHistory').innerHTML = 'No moves yet. Click "Start Solution" to begin!';
+            
+            updateCurrentMove("🎯 Goal: Move all 3 disks from Rod A to Rod C");
+            updateStrategy(`To move 3 disks from A to C:<br>
+                          1. Move 2 disks from A to B<br>
+                          2. Move big disk from A to C<br>
+                          3. Move 2 disks from B to C`);
+        }
+        
+        function updateCurrentMove(text) {
+            document.getElementById('currentMove').innerHTML = text;
+        }
+        
+        function updateStrategy(text) {
+            document.getElementById('strategyText').innerHTML = text;
+        }
+        
+        function addToHistory(move) {
+            const history = document.getElementById('moveHistory');
+            const moveItem = document.createElement('div');
+            moveItem.className = 'move-item';
+            moveItem.innerHTML = `<strong>Move ${currentMoveIndex}:</strong> ${move.from} → ${move.to} (Disk ${move.disk})`;
+            
+            if (history.innerHTML === 'No moves yet. Click "Start Solution" to begin!') {
+                history.innerHTML = '';
+            }
+            
+            history.appendChild(moveItem);
+            history.scrollTop = history.scrollHeight;
+        }
+        
+        function getStrategyForMove(moveIndex) {
+            const strategies = [
+                "Step 1a: Moving disk 1 to C (getting it out of the way)",
+                "Step 1b: Moving disk 2 to B (this is our intermediate goal)",
+                "Step 1c: Moving disk 1 to B (completed moving 2 disks to B!)",
+                "Step 2: Moving the BIG disk to C (this is why we moved the others!)",
+                "Step 3a: Moving disk 1 to A (getting it out of the way again)",
+                "Step 3b: Moving disk 2 to C (stacking on the big disk)",
+                "Step 3c: Moving disk 1 to C (COMPLETE! All disks moved!)"
+            ];
+            
+            return strategies[moveIndex] || "Puzzle completed!";
+        }
+        
+        // Speed control
+        document.getElementById('speedSlider').addEventListener('input', function(e) {
+            gameSpeed = parseInt(e.target.value);
+            const labels = {
+                500: "Very Fast",
+                1000: "Fast", 
+                1500: "Normal",
+                2000: "Slow",
+                2500: "Very Slow",
+                3000: "Super Slow"
+            };
+            
+            const label = labels[gameSpeed] || "Normal";
+            document.getElementById('speedLabel').textContent = label;
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCurrentMove("🎯 Goal: Move all 3 disks from Rod A to Rod C");
+        });
+    </script>
+</body>
+</html>
